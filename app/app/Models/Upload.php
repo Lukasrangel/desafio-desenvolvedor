@@ -9,6 +9,7 @@ class Upload extends Model
     protected $fillable = [
         'filename',
         'filepath',
+        'safename',
         'hash',
         'uploaded_at'
     ];
