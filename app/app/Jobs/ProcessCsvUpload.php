@@ -7,10 +7,12 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Foundation\Bus\Dispatchable;
 
 class ProcessCsvUpload implements ShouldQueue
 {
     use InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
 
     protected $path;
     protected $uploadId;
@@ -25,7 +27,7 @@ class ProcessCsvUpload implements ShouldQueue
     public function handle()
     {
         //abre e lê arquivo csv
-        $handle = fopen(storage_path("app/{$this->path}"), 'r');
+        $handle = fopen(storage_path("{$this->path}"), 'r');
         $header = fgetcsv($handle);
 
         //array que conterá 500 indices, para salvar no db em lote
@@ -35,21 +37,22 @@ class ProcessCsvUpload implements ShouldQueue
         //enquanto row ainda tiver bytes retorna != false
         while (($row = fgetcsv($handle)) !== false) {
             $data = array_combine($header, $row);
-
+            
             //campos extras serão salvos em json na tabela do banco
             $extraFields = collect($data)->except([
                 'RptDt', 'TckrSymb', 'MktNm', 'SctyCtgyNm', 'ISIN', 'CrpnNm'
             ]);
 
+            
             $batch[] = [
                 'upload_id'      => $this->uploadId,
-                'rpt_dt'         => date('Y-m-d', strtotime($data['RptDt'])),
-                'tckr_symb'      => $data['TckrSymb'],
-                'mkt_nm'         => $data['MktNm'],
-                'scty_ctgy_nm'   => $data['SctyCtgyNm'],
-                'isin'           => $data['ISIN'],
-                'crpn_nm'        => $data['CrpnNm'],
-                'extra'          => $extraFields->all(),
+                'RptDt'         => date('Y-m-d', strtotime($data['RptDt'])),
+                'TckrSymb'      => $data['TckrSymb'],
+                'MktNm'         => $data['MktNm'],
+                'SctyCtgyNm'   => $data['SctyCtgyNm'],
+                'ISIN'           => $data['ISIN'],
+                'CrpnNm'        => $data['CrpnNm'],
+                'extra'          => json_encode($extraFields->all()),
                 'created_at'     => now(),
                 'updated_at'     => now(),
             ];

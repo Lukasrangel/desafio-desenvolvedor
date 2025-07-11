@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('upload_id');
             $table->foreign('upload_id')->references('id')->on('uploads');
-            $table->date('rpt_dt');
-            $table->string('tckr_symb');
+            $table->date('RptDt');
+            $table->string('TckrSymb');
             $table->string('MktNm');
             $table->string('SctyCtgyNm');
             $table->string('ISIN');

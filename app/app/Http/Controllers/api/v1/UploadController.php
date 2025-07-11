@@ -7,12 +7,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Upload;
 use App\Jobs\ProcessCsvUpload;
+use Illuminate\Support\Facades\Storage;
+
 
 class UploadController extends Controller
 {
     public function store(Request $request){
 
-        $validator = Validator::make($request->all(), [
+    
+        $validator = Validator::make($request->only('file'), [
             'file' => 'required|file|mimes:csv,xlsx',
         ]);
 
@@ -21,6 +24,7 @@ class UploadController extends Controller
                 'errors' => $validator->errors()
             ], 422);
         }
+
 
         $file = $request->file('file');
         $hash = hash_file('sha256', $file->getRealPath());
@@ -33,16 +37,20 @@ class UploadController extends Controller
         // Salva o arquivo na tabela e no path storage/uploads
         $originalName = $file->getClientOriginalName();
         $extension = $file->getClientOriginalExtension();
+        $safeName = pathinfo($originalName, PATHINFO_FILENAME) . '_' . $hash . '.' . $extension;
+        $storedPath = $file->storeAs('uploads', $safeName);
+        $absolutePath = 'app' . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $safeName;
+
         $upload = Upload::create([
             'filename' => $file->getClientOriginalName(),
-            'safename' => $originalName . '_' . $hash . '.' . $extension,
-            'filepath' => $file->storeAs('uploads', $originalName),
+            'safename' => $safeName,
+            'filepath' => $storedPath,
             'hash'     => $hash,
             'uploaded_at' => now(),
         ]);
 
-        ProcessCsvUpload::dispatch($upload->filepath, $upload->id);
-
+        ProcessCsvUpload::dispatch($absolutePath, $upload->id);
+        
         return response()->json(['message' => 'Arquivo enviado com sucesso!', 'upload_id' => $upload->id]);
 
     }

@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\v1\UploadController;
+use App\Http\Controllers\Api\v1\UserController;
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -13,7 +14,7 @@ Route::prefix('v1')->group(function() {
 
     //upload de arquivo csv ou xlsx
     Route::post('/upload',[UploadController::class, 'store']);
-    
+    Route::get('/users',[UserController::class, 'index']);
 
 });
 

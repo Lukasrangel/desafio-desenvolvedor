@@ -10,13 +10,18 @@ class Record extends Model
 
     protected $fillable = [
         'upload_id',
-        'rpt_dt',
-        'tckr_symb',
+        'RptDt',
+        'TckrSymb',
         'MktNm',
         'SctyCtgyNm',
         'ISIN',
         'CrpnNm',
         'extra'
+    ];
+
+    protected $casts = [
+        'extra' => 'array',
+    
     ];
     
     public function upload() {
