@@ -64,7 +64,13 @@ class UploadController extends Controller
         $uploads = Upload::paginate(10);
         $data = UploadResource::collection($uploads);
         
-        return $this->responsePaginate($uploads->CurrentPage(), $uploads->perPage(), $uploads->lastPage(), $uploads->total(),$uploads->previousPageUrl(),$uploads->nextPageUrl(), 200, $data);
+        return $this->responsePaginate($uploads->CurrentPage(), 
+        $uploads->perPage(), 
+        $uploads->lastPage(), 
+        $uploads->total(),
+        $uploads->previousPageUrl(),
+        $uploads->nextPageUrl(),
+        200, $data);
     }
 
     public function search(Request $request) {
@@ -91,7 +97,7 @@ class UploadController extends Controller
         $uploads = $query->paginate(10); 
         $data = UploadResource::collection($uploads);
 
-        return $this->responsePaginate($uploads->CurrentPage(), $uploads->perPage(), $uploads->lastPage(), $uploads->total(),$uploads->previousPageUrl(),$uploads->nextPageUrl(), 200, $data);
+        return $this->responsePaginate($uploads, 200, $data);
         
     }
 }

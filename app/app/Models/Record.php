@@ -24,7 +24,8 @@ class Record extends Model
     
     ];
     
+    
     public function upload() {
-        $this->belongsTo(Upload::class);
+        return $this->belongsTo(Upload::class,'upload_id');
     }
 }

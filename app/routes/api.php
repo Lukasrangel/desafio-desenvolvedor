@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\api\v1\RecordController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\v1\UploadController;
@@ -20,6 +21,9 @@ Route::prefix('v1')->group(function() {
 
     //busca de uploads
     Route::post('/uploads/search', [UploadController::class, 'search']);
+
+    //busca de records no arquivo
+    Route::post('/uploads/{safeName}', [RecordController::class,'search']);
 
 });
 

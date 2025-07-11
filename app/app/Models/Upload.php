@@ -14,7 +14,7 @@ class Upload extends Model
         'uploaded_at'
     ];
 
-    public function record() {
-        $this->hasMany(Record::class);
+    public function records() {
+        return $this->hasMany(Record::class,'upload_id');
     }
 }

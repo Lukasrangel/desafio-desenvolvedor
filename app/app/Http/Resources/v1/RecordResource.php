@@ -4,9 +4,9 @@ namespace App\Http\Resources\v1;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Carbon\Carbon;
 
-class UploadResource extends JsonResource
+
+class RecordResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,9 +16,12 @@ class UploadResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'fileName' => $this->filename,
-            'safeName' => $this->safename, //name para utilizar na busca 
-            'dateOfSend' => Carbon::parse($this->uploaded_at)->format('d/m/Y H:i:s')
+            "RptDt" => $this->RptDt,
+            "TckrSymb" => $this->TckrSymb,
+            "MktNm" => $this->MktNm,
+            "SctyCtgyNm" => $this->SctyCtgyNm,
+            "ISIN" => $this->ISIN,
+            "CrpnNm" => $this->CrpnNm
         ];
     }
 }
