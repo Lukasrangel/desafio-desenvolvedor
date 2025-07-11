@@ -25,50 +25,77 @@ class ProcessCsvUpload implements ShouldQueue
     }
 
     public function handle()
-    {
-        //abre e lê arquivo csv
-        $handle = fopen(storage_path("{$this->path}"), 'r');
-        $header = fgetcsv($handle);
+{
+    $filePath = storage_path("{$this->path}");
+    $handle = fopen($filePath, 'r');
 
-        //array que conterá 500 indices, para salvar no db em lote
-        $batch = [];
-        $batchSize = 500;
+    // Detectar delimitador
+    $firstLine = fgets($handle);
+    $delimiter = (substr_count($firstLine, ';') > substr_count($firstLine, ',')) ? ';' : ',';
+    rewind($handle);
 
-        //enquanto row ainda tiver bytes retorna != false
-        while (($row = fgetcsv($handle)) !== false) {
-            $data = array_combine($header, $row);
-            
-            //campos extras serão salvos em json na tabela do banco
-            $extraFields = collect($data)->except([
-                'RptDt', 'TckrSymb', 'MktNm', 'SctyCtgyNm', 'ISIN', 'CrpnNm'
-            ]);
+    // Cabeçalhos esperados
+    $required = ['RptDt', 'TckrSymb', 'MktNm', 'SctyCtgyNm', 'ISIN', 'CrpnNm'];
+    $maxAttempts = 20;
+    $header = null;
+    $attempt = 0;
+    $rawHeaders = [];
 
-            
-            $batch[] = [
-                'upload_id'      => $this->uploadId,
-                'RptDt'         => date('Y-m-d', strtotime($data['RptDt'])),
-                'TckrSymb'      => $data['TckrSymb'],
-                'MktNm'         => $data['MktNm'],
-                'SctyCtgyNm'   => $data['SctyCtgyNm'],
-                'ISIN'           => $data['ISIN'],
-                'CrpnNm'        => $data['CrpnNm'],
-                'extra'          => json_encode($extraFields->all()),
-                'created_at'     => now(),
-                'updated_at'     => now(),
-            ];
+    // Procurar cabeçalho válido
+    while (($line = fgetcsv($handle, 0, $delimiter)) !== false && $attempt < $maxAttempts) {
+        $normalized = array_map('trim', $line);
+        $rawHeaders[] = $normalized;
 
-            if (count($batch) >= $batchSize) {
-                DB::table('records')->insert($batch);
-                $batch = [];
-            }
+        if (count(array_intersect($required, $normalized)) === count($required)) {
+            $header = $normalized;
+            break;
         }
 
-        if (!empty($batch)) {
-            DB::table('records')->insert($batch);
-        }
-
-        fclose($handle);
+        $attempt++;
     }
+
+    if (!$header) {
+        $sample = collect($rawHeaders)->take(5)->map(fn($l) => implode($delimiter, $l))->implode("\n");
+        throw new \Exception("Cabeçalho não encontrado nas primeiras {$maxAttempts} linhas. Amostras:\n{$sample}");
+    }
+
+    // Preparar inserção em lote
+    $batch = [];
+    $batchSize = 500;
+
+    while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+        if (count($row) !== count($header)) {
+            continue;
+        }
+
+        $data = array_combine($header, $row);
+        $extra = collect($data)->except($required);
+
+        $batch[] = [
+            'upload_id'     => $this->uploadId,
+            'RptDt'         => date('Y-m-d', strtotime($data['RptDt'])),
+            'TckrSymb'      => $data['TckrSymb'],
+            'MktNm'         => $data['MktNm'],
+            'SctyCtgyNm'    => $data['SctyCtgyNm'],
+            'ISIN'          => $data['ISIN'],
+            'CrpnNm'        => $data['CrpnNm'],
+            'extra'         => json_encode($extra->all()),
+            'created_at'    => now(),
+            'updated_at'    => now(),
+        ];
+
+        if (count($batch) >= $batchSize) {
+            DB::table('records')->insert($batch);
+            $batch = [];
+        }
+    }
+
+    if (!empty($batch)) {
+        DB::table('records')->insert($batch);
+    }
+
+    fclose($handle);
 }
 
+}
 

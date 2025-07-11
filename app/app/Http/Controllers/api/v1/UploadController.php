@@ -20,7 +20,7 @@ class UploadController extends Controller
 
     
         $validator = Validator::make($request->only('file'), [
-            'file' => 'required|file|mimes:csv,xlsx',
+            'file' => 'required|file|mimetypes:text/plain,text/csv,application/vnd.ms-excel',
         ]);
 
         if ($validator->fails()) {
@@ -53,7 +53,8 @@ class UploadController extends Controller
             'uploaded_at' => now(),
         ]);
 
-        ProcessCsvUpload::dispatch($absolutePath, $upload->id);
+       ProcessCsvUpload::dispatch($absolutePath, $upload->id);
+       //(new ProcessCsvUpload($absolutePath, $upload->id))->handle();
         
         return response()->json(['message' => 'Arquivo enviado com sucesso!', 'upload_id' => $upload->id]);
 
@@ -64,12 +65,7 @@ class UploadController extends Controller
         $uploads = Upload::paginate(10);
         $data = UploadResource::collection($uploads);
         
-        return $this->responsePaginate($uploads->CurrentPage(), 
-        $uploads->perPage(), 
-        $uploads->lastPage(), 
-        $uploads->total(),
-        $uploads->previousPageUrl(),
-        $uploads->nextPageUrl(),
+        return $this->responsePaginate($uploads,
         200, $data);
     }
 

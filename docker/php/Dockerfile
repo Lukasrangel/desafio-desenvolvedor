@@ -1,20 +1,34 @@
 FROM php:8.2-fpm
 
-# Instalar extensões do PHP necessárias para Laravel
+# Arguments defined in docker-compose.yml
+ARG user
+ARG uid
+
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
-    unzip \
-    libzip-dev \
+    curl \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
     zip \
-    curl \
-    && docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath
+    unzip
 
-# Instalar composer globalmente
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+# Clear cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+
+# Get latest Composer
+COPY php.ini/php.ini /usr/local/etc/php/conf.d/custom.ini
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+
+
+# Set working directory
 WORKDIR /var/www
 
-CMD ["php-fpm"]
+USER $user
+
+
