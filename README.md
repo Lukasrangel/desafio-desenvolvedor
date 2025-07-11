@@ -27,12 +27,12 @@
 
 <p> esta rota lista todo o historico de uploads de forma páginada, com o nome do arquivo e o safename, usado como nome real para não sobescrever possiveis arquivos com o mesmo nome na storage</p>
 
-<h4> post /api/v1//uploads/search</h4>
+<h4> post /api/v1/uploads/search</h4>
 
 <p> Recebe os parâmetros fileName e date, ambos opcionais, procura uploads com os dados requisitados de forma páginada, se não receber nenhum parâmetro, retorna todos os arquivos, 
   aqui você pode ver o safename que pode ser usado na próxima requisição...</p>
 
-<h4> post /api/v1//uploads/{safeName}</h4>
+<h4> post /api/v1/uploads/{safeName}</h4>
 
 <p> Recebe na url o safeName do arquivo que se busca, se não enviado nenhum parâmetro retorna todos os records da tabela relacionados ao arquivo requisitado;
 recebe opcionalmente os parâmetros: RptDt e TckrSymb e busca os dados da referida linha na tabela</p>
