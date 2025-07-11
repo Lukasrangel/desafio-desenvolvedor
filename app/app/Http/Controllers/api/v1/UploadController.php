@@ -7,11 +7,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Upload;
 use App\Jobs\ProcessCsvUpload;
-use Illuminate\Support\Facades\Storage;
+use App\Http\Resources\v1\UploadResource;
+use App\Traits\HttpResponse;
 
 
 class UploadController extends Controller
 {
+    use HttpResponse;
+
+
     public function store(Request $request){
 
     
@@ -53,5 +57,13 @@ class UploadController extends Controller
         
         return response()->json(['message' => 'Arquivo enviado com sucesso!', 'upload_id' => $upload->id]);
 
+    }
+
+    public function show() {
+
+        $uploads = Upload::paginate(10);
+        $data = UploadResource::collection($uploads);
+        
+        return $this->responsePaginate($uploads->CurrentPage(), $uploads->perPage(), $uploads->lastPage(), $uploads->total(),$uploads->previousPageUrl(),$uploads->nextPageUrl(), 200, $data);
     }
 }

@@ -14,7 +14,9 @@ Route::prefix('v1')->group(function() {
 
     //upload de arquivo csv ou xlsx
     Route::post('/upload',[UploadController::class, 'store']);
-    Route::get('/users',[UserController::class, 'index']);
+    
+    //listagem histórico de arquivo
+    Route::get('/historic', [UploadController::class, 'show']);
 
 });
 
