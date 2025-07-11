@@ -66,4 +66,32 @@ class UploadController extends Controller
         
         return $this->responsePaginate($uploads->CurrentPage(), $uploads->perPage(), $uploads->lastPage(), $uploads->total(),$uploads->previousPageUrl(),$uploads->nextPageUrl(), 200, $data);
     }
+
+    public function search(Request $request) {
+
+        if(!$request->filled('fileName') && !$request->filled('date')){
+            return $this->error('Necessário enviar campo fileName ou date',400);
+        }
+
+        $fileName = $request->fileName;
+        $date = $request->date;
+
+        $query = Upload::query();
+
+        // Se fileName existir, filtra por fileNaem
+        $query->when($request->filled('fileName'), function ($q) use ($fileName) {
+            $q->where('filename', 'like', '%' . $fileName . '%');
+        });
+
+        // Se tiver 'data', filtra por data
+        $query->when($request->filled('data'), function ($q) use ($date) {
+            $q->whereDate('uploaded_at', $date);
+        });
+
+        $uploads = $query->paginate(10); 
+        $data = UploadResource::collection($uploads);
+
+        return $this->responsePaginate($uploads->CurrentPage(), $uploads->perPage(), $uploads->lastPage(), $uploads->total(),$uploads->previousPageUrl(),$uploads->nextPageUrl(), 200, $data);
+        
+    }
 }

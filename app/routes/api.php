@@ -18,5 +18,8 @@ Route::prefix('v1')->group(function() {
     //listagem histórico de arquivo
     Route::get('/historic', [UploadController::class, 'show']);
 
+    //busca de uploads
+    Route::post('/uploads/search', [UploadController::class, 'search']);
+
 });
 
